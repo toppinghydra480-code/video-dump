@@ -52,7 +52,8 @@ body {
     font-size: 0.9rem;
 }
 
-input[type="password"] {
+input[type="password"],
+input[type="text"] {
     width: 100%;
     padding: 14px 16px;
     border-radius: 12px;
@@ -63,7 +64,8 @@ input[type="password"] {
     transition: border-color 0.2s;
 }
 
-input[type="password"]:focus {
+input[type="password"]:focus,
+input[type="text"]:focus {
     border-color: var(--accent);
 }
 
@@ -106,10 +108,6 @@ button:hover {
     box-shadow: 0 10px 20px rgba(139,92,246,0.35);
 }
 
-.hidden {
-    display: none;
-}
-
 .progress {
     margin-top: 12px;
     height: 10px;
@@ -137,12 +135,15 @@ button:hover {
         <input type="password" id="passwordInput" placeholder="Enter password" required>
         <button type="button" id="unlockBtn">Unlock</button>
 
+        <!-- Custom name input, hidden initially -->
+        <input type="text" id="videoNameInput" placeholder="Enter video name" style="display:none; margin-top:10px;">
+
         <label class="dropzone" id="dropzone">
             Click or drop video here
             <input type="file" name="video" id="fileInput" accept="video/*" required>
         </label>
 
-        <button type="submit" id="uploadBtn" class="hidden">Upload</button>
+        <button type="submit" id="uploadBtn" style="display:none;">Upload</button>
 
         <div class="progress" id="progress">
             <div class="progress-bar" id="progressBar"></div>
@@ -155,21 +156,24 @@ const passwordInput = document.getElementById("passwordInput");
 const unlockBtn = document.getElementById("unlockBtn");
 const dropzone = document.getElementById("dropzone");
 const uploadBtn = document.getElementById("uploadBtn");
+const videoNameInput = document.getElementById("videoNameInput");
 const form = document.getElementById("uploadForm");
 const fileInput = document.getElementById("fileInput");
 const progress = document.getElementById("progress");
 const progressBar = document.getElementById("progressBar");
 
-// Change this to your desired password
+// Your password
 const PASSWORD = "dinklefart288";
 
-// Unlock dropzone only after correct password
+// Unlock dropzone + name input after correct password
 unlockBtn.addEventListener("click", () => {
     if(passwordInput.value === PASSWORD){
         dropzone.style.display = "block";
         uploadBtn.style.display = "block";
+        videoNameInput.style.display = "block";
         passwordInput.disabled = true;
         unlockBtn.style.display = "none";
+        videoNameInput.focus();
     } else {
         alert("Incorrect password");
         passwordInput.value = "";
@@ -177,7 +181,7 @@ unlockBtn.addEventListener("click", () => {
     }
 });
 
-// Drag & drop functionality
+// Drag & drop
 dropzone.addEventListener("dragover", e => {
     e.preventDefault();
     dropzone.style.borderColor = "#8b5cf6";
@@ -196,7 +200,19 @@ dropzone.addEventListener("drop", e => {
 // Upload functionality
 form.addEventListener("submit", e => {
     e.preventDefault();
+
+    if (!fileInput.files.length) {
+        alert("Please select a video file.");
+        return;
+    }
+
     const formData = new FormData(form);
+
+    // Use custom video name if provided
+    if(videoNameInput.value.trim() !== ""){
+        formData.append("customName", videoNameInput.value.trim());
+    }
+
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/upload");
 
